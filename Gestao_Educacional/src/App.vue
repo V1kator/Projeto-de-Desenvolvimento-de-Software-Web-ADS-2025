@@ -4,7 +4,7 @@ import { RouterLink, RouterView } from 'vue-router'
 
 <template>
   <div class="container-xxl position-relative bg-white d-flex p-0">
-    <RouterLink to="/chamada">Chamada</RouterLink>
+    <RouterLink to="/chamada">Sonho</RouterLink>
     <RouterView />
   </div>
 
