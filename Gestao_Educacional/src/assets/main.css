@@ -1,5 +1,6 @@
-@import './style.css';
 @import './bootstrap.min.css';
+@import './style.css';
+
 
 
 #app {
@@ -35,3 +36,4 @@ a,
     padding: 0 2rem;
   }
 }
+
