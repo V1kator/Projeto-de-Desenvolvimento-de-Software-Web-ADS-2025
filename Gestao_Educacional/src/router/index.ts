@@ -14,7 +14,7 @@ const router = createRouter({
   routes: [
     {
       path: '/',
-      redirect: '/chamada',
+      redirect: '/login',
     },
     {
       path: '/chamada',
