@@ -29,6 +29,14 @@
           <i class="fa fa-user-edit me-2"></i>Editar Aluno
         </RouterLink>
 
+        <RouterLink to="/materia" class="nav-item nav-link">
+          <i class="fa fa-user-plus me-2"></i>Matéria
+        </RouterLink>
+
+        <RouterLink to="/turma" class="nav-item nav-link">
+          <i class="fa fa-user-plus me-2"></i>Turma
+        </RouterLink>
+
         <RouterLink to="/eventos-busca" class="nav-item nav-link">
           <i class="fa fa-calendar-alt me-2"></i>Buscar Eventos
         </RouterLink>
@@ -52,6 +60,7 @@
         <RouterLink to="/singup" class="nav-item nav-link">
           <i class="fa fa-user-plus me-2"></i>Cadastro
         </RouterLink>
+
       </div>
     </nav>
   </div>

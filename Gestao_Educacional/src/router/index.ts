@@ -8,6 +8,8 @@ import FuncionarioEditar from '@/views/Funcionario_editar.vue'
 import FuncionariosBusca from '@/views/Funcionarios_busca.vue'
 import Login from '@/views/Login.vue'
 import SingUp from '@/views/SingUp.vue'
+import Materia from '@/views/Materia.vue'
+import Turma from '@/views/Turma.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -60,6 +62,16 @@ const router = createRouter({
       path: '/singup',
       name: 'singup',
       component: SingUp,
+    },
+    {
+      path: '/materia',
+      name: 'materia',
+      component: Materia,
+    },
+    {
+      path: '/turma',
+      name: 'turma',
+      component: Turma,
     }
   ],
 })
