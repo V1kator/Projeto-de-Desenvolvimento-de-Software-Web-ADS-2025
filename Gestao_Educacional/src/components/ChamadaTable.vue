@@ -1,9 +1,9 @@
 <template>
-  <div class="bg-light rounded p-4">
+  <div class="shadow-sm bg-white rounded-3 p-4">
     <h4 class="mb-4">Chamada - {{ dataAtual }}</h4>
     <div class="table-responsive">
-      <table class="table table-bordered table-hover align-middle">
-        <thead class="table-primary">
+      <table class="table align-middle mb-0">
+        <thead class="table-light">
           <tr>
             <th>Aluno</th>
             <th>Presente</th>
@@ -35,7 +35,7 @@
             <td>
               <input
                 type="text"
-                class="form-control"
+                class="form-control form-control-sm"
                 :value="aluno.justificativa"
                 :disabled="aluno.status !== 'falta'"
                 @input="$emit('editar-justificativa', aluno.id, $event.target.value)"

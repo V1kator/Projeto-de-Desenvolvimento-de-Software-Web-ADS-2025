@@ -1,27 +1,22 @@
 <template>
-  <Spinner />
-  <Sidebar />
-
   <div class="content p-4">
+    <div class="d-flex justify-content-between mb-3">
+      <label class="form-label me-2">Data:</label>
+      <input type="date" class="form-control w-auto" v-model="dataSelecionada" @change="carregarChamada" />
+    </div>
 
-     <!-- <SalesTable /> -->
-    <!-- <ToDoList /> -->
-
-    <ChamadaForm :data="dataSelecionada" @atualizar-data="mudarData" />
     <ChamadaTable
       :alunos="chamadasPorData[dataSelecionada] || []"
       @marcar-presenca="marcarPresenca"
       @marcar-falta="marcarFalta"
       @editar-justificativa="editarJustificativa"
+
     />
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref } from 'vue'
-import Spinner from '@/components/Spinner.vue'
-import Sidebar from '@/components/Sidebar.vue'
-import ChamadaForm from '@/components/ChamadaForm.vue'
 import ChamadaTable from '@/components/ChamadaTable.vue'
 
 interface Aluno {
@@ -31,58 +26,36 @@ interface Aluno {
   justificativa?: string
 }
 
-// simula um banco
 const chamadasPorData = ref<Record<string, Aluno[]>>({})
-
-// inicia com a data atual
 const dataSelecionada = ref(new Date().toISOString().split('T')[0])
 
-// alunos temporario
-function inicializarAlunosParaData(data: string) {
-  if (!chamadasPorData.value[data]) {
-    chamadasPorData.value[data] = [
+function carregarChamada() {
+  if (!chamadasPorData.value[dataSelecionada.value]) {
+    chamadasPorData.value[dataSelecionada.value] = [
       { id: 1, nome: 'Maria', status: '', justificativa: '' },
       { id: 2, nome: 'João', status: '', justificativa: '' },
-      { id: 3, nome: 'Ana', status: '', justificativa: '' },
     ]
   }
 }
 
-// mudança de data
-function mudarData(novaData: string) {
-  dataSelecionada.value = novaData
-  inicializarAlunosParaData(novaData)
-}
-
-// presença
-function marcarPresenca(alunoId: number) {
-  const alunos = chamadasPorData.value[dataSelecionada.value]
-  const aluno = alunos.find((a) => a.id === alunoId)
+function marcarPresenca(id: number) {
+  const aluno = chamadasPorData.value[dataSelecionada.value]?.find(a => a.id === id)
   if (aluno) {
     aluno.status = 'presente'
     aluno.justificativa = ''
   }
 }
 
-// falta
-function marcarFalta(alunoId: number) {
-  const alunos = chamadasPorData.value[dataSelecionada.value]
-  const aluno = alunos.find((a) => a.id === alunoId)
-  if (aluno) {
-    aluno.status = 'falta'
-  }
+function marcarFalta(id: number) {
+  const aluno = chamadasPorData.value[dataSelecionada.value]?.find(a => a.id === id)
+  if (aluno) aluno.status = 'falta'
 }
 
-// edita justificativa
-function editarJustificativa(alunoId: number, novaJustificativa: string) {
-  const alunos = chamadasPorData.value[dataSelecionada.value]
-  const aluno = alunos.find((a) => a.id === alunoId)
-  if (aluno) {
-    aluno.justificativa = novaJustificativa
-  }
+function editarJustificativa(id: number, texto: string) {
+  const aluno = chamadasPorData.value[dataSelecionada.value]?.find(a => a.id === id)
+  if (aluno) aluno.justificativa = texto
 }
 
-// inicia com a data atual
-inicializarAlunosParaData(dataSelecionada.value)
+// Inicializa ao abrir
+carregarChamada()
 </script>
-
