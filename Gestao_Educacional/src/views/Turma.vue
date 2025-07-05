@@ -25,6 +25,7 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
+import Swal from 'sweetalert2'
 import TurmaForm from '@/components/TurmaForm.vue'
 import TurmaTable from '@/components/TurmaTable.vue'
 
@@ -81,19 +82,52 @@ function salvarTurma(turma: Turma) {
     if (index !== -1) {
       turmas.value[index] = { ...turma }
     }
+
+    Swal.fire({
+      icon: 'success',
+      title: 'Turma atualizada com sucesso!',
+      showConfirmButton: false,
+      timer: 1500
+    })
+
   } else {
     turmas.value.push({ ...turma })
+
+    Swal.fire({
+      icon: 'success',
+      title: 'Turma cadastrada com sucesso!',
+      showConfirmButton: false,
+      timer: 1500
+    })
   }
+
   cancelarFormulario()
 }
 
-// Excluir turma com confirmação
+// Excluir turma com
 function confirmarExclusao(id: number) {
   const turma = turmas.value.find(t => t.id === id)
-  if (turma && confirm(`Deseja excluir a turma "${turma.nome}"?`)) {
-    turmas.value = turmas.value.filter(t => t.id !== id)
-    cancelarFormulario()
-  }
+  if (!turma) return
+
+  Swal.fire({
+    title: `Deseja excluir a turma "${turma.nome}"?`,
+    text: 'Essa ação não poderá ser desfeita!',
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonText: 'Sim, excluir',
+    cancelButtonText: 'Cancelar'
+  }).then(result => {
+    if (result.isConfirmed) {
+      turmas.value = turmas.value.filter(t => t.id !== id)
+      cancelarFormulario()
+
+      Swal.fire({
+        icon: 'success',
+        title: 'Turma excluída com sucesso!',
+        showConfirmButton: false,
+        timer: 1500
+      })
+    }
+  })
 }
 </script>
-

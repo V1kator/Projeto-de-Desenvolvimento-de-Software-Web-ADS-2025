@@ -25,6 +25,7 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
+import Swal from 'sweetalert2'
 import MateriaTable from '@/components/MateriaTable.vue'
 import MateriaForm from '@/components/MateriaForm.vue'
 
@@ -74,17 +75,51 @@ function salvarMateria(materia: Materia) {
     if (index !== -1) {
       materias.value[index] = { ...materia }
     }
+
+    Swal.fire({
+      icon: 'success',
+      title: 'Matéria atualizada com sucesso!',
+      showConfirmButton: false,
+      timer: 1500
+    })
+
   } else {
     materias.value.push({ ...materia })
+
+    Swal.fire({
+      icon: 'success',
+      title: 'Matéria cadastrada com sucesso!',
+      showConfirmButton: false,
+      timer: 1500
+    })
   }
+
   cancelarFormulario()
 }
 
 function confirmarExclusao(id: number) {
   const materia = materias.value.find(m => m.id === id)
-  if (materia && confirm(`Deseja realmente excluir a matéria "${materia.nome}"?`)) {
-    materias.value = materias.value.filter(m => m.id !== id)
-    cancelarFormulario()
-  }
+  if (!materia) return
+
+  Swal.fire({
+    title: `Deseja excluir a matéria "${materia.nome}"?`,
+    text: 'Essa ação não poderá ser desfeita!',
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonText: 'Sim, excluir',
+    cancelButtonText: 'Cancelar'
+  }).then(result => {
+    if (result.isConfirmed) {
+      materias.value = materias.value.filter(m => m.id !== id)
+      cancelarFormulario()
+
+      Swal.fire({
+        icon: 'success',
+        title: 'Matéria excluída com sucesso!',
+        showConfirmButton: false,
+        timer: 1500
+      })
+    }
+  })
 }
 </script>

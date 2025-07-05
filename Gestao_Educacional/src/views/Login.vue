@@ -67,11 +67,9 @@ const router = useRouter()
 
 // Função para lidar com o login
 const handleLogin = () => {
-  // Aqui você pode adicionar a lógica de validação e autenticação
-  // Por exemplo, verificar se email e senha estão preenchidos
+
   if (email.value && password.value) {
-    // Em um caso real, você faria uma chamada à API para autenticar o usuário
-    // Por enquanto, vamos apenas navegar para a página de chamada
+
 
     // Armazenar informações de login se "Remember Me" estiver marcado
     if (rememberMe.value) {

@@ -26,6 +26,7 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
+import Swal from 'sweetalert2'
 import FuncionarioForm from '@/components/FuncionarioForm.vue'
 import FuncionarioTable from '@/components/FuncionarioTable.vue'
 
@@ -40,7 +41,6 @@ interface Funcionario {
   desligamento?: string
 }
 
-// Lista simulada de matérias
 const materiasDisponiveis = ref([
   'Matemática',
   'Português',
@@ -48,7 +48,6 @@ const materiasDisponiveis = ref([
   'História'
 ])
 
-// Lista simulada de funcionários
 const funcionarios = ref<Funcionario[]>([
   {
     id: 1,
@@ -121,17 +120,49 @@ function salvarFuncionario(func: Funcionario) {
   if (modoFormulario.value.edicao) {
     const index = funcionarios.value.findIndex(f => f.id === func.id)
     if (index !== -1) funcionarios.value[index] = { ...func }
+
+    Swal.fire({
+      icon: 'success',
+      title: 'Funcionário atualizado com sucesso!',
+      showConfirmButton: false,
+      timer: 1500
+    })
   } else {
     funcionarios.value.push({ ...func })
+
+    Swal.fire({
+      icon: 'success',
+      title: 'Funcionário cadastrado com sucesso!',
+      showConfirmButton: false,
+      timer: 1500
+    })
   }
   cancelarFormulario()
 }
 
 function excluirFuncionario(id: number) {
   const func = funcionarios.value.find(f => f.id === id)
-  if (func && confirm(`Deseja realmente excluir ${func.nome}?`)) {
-    funcionarios.value = funcionarios.value.filter(f => f.id !== id)
-    cancelarFormulario()
-  }
+  if (!func) return
+
+  Swal.fire({
+    title: `Deseja excluir ${func.nome}?`,
+    text: 'Essa ação não poderá ser desfeita!',
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonText: 'Sim, excluir',
+    cancelButtonText: 'Cancelar'
+  }).then(result => {
+    if (result.isConfirmed) {
+      funcionarios.value = funcionarios.value.filter(f => f.id !== id)
+      cancelarFormulario()
+
+      Swal.fire({
+        icon: 'success',
+        title: 'Funcionário excluído com sucesso!',
+        showConfirmButton: false,
+        timer: 1500
+      })
+    }
+  })
 }
 </script>

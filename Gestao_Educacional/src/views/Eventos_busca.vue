@@ -26,6 +26,7 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
+import Swal from 'sweetalert2'
 import EventoForm from '@/components/EventoForm.vue'
 import EventoTable from '@/components/EventoTable.vue'
 
@@ -54,14 +55,12 @@ interface Aluno {
   periodo: string
 }
 
-// Lista simulada de alunos
 const alunosDisponiveis = ref<Aluno[]>([
   { id: 1, nome: 'José', turma: 'A', periodo: 'Matutino' },
   { id: 2, nome: 'Ana', turma: 'B', periodo: 'Vespertino' },
   { id: 3, nome: 'Carlos', turma: 'A', periodo: 'Noturno' }
 ])
 
-// Lista de eventos
 const eventos = ref<Evento[]>([
   {
     id: 1,
@@ -125,18 +124,51 @@ function salvarEvento(evento: Evento) {
   if (modoFormulario.value.edicao) {
     const i = eventos.value.findIndex(e => e.id === evento.id)
     if (i !== -1) eventos.value[i] = { ...evento }
+
+    Swal.fire({
+      icon: 'success',
+      title: 'Evento atualizado com sucesso!',
+      showConfirmButton: false,
+      timer: 1500
+    })
+
   } else {
     eventos.value.push({ ...evento })
+
+    Swal.fire({
+      icon: 'success',
+      title: 'Evento cadastrado com sucesso!',
+      showConfirmButton: false,
+      timer: 1500
+    })
   }
+
   cancelarFormulario()
 }
 
 function excluirEvento(id: number) {
   const evento = eventos.value.find(e => e.id === id)
-  if (evento && confirm(`Deseja excluir o evento "${evento.nome}"?`)) {
-    eventos.value = eventos.value.filter(e => e.id !== id)
-    cancelarFormulario()
-  }
+  if (!evento) return
+
+  Swal.fire({
+    title: `Deseja excluir o evento "${evento.nome}"?`,
+    text: 'Essa ação não poderá ser desfeita!',
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonText: 'Sim, excluir',
+    cancelButtonText: 'Cancelar'
+  }).then(result => {
+    if (result.isConfirmed) {
+      eventos.value = eventos.value.filter(e => e.id !== id)
+      cancelarFormulario()
+
+      Swal.fire({
+        icon: 'success',
+        title: 'Evento excluído com sucesso!',
+        showConfirmButton: false,
+        timer: 1500
+      })
+    }
+  })
 }
 </script>
-
