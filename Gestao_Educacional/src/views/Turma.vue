@@ -32,15 +32,15 @@ import TurmaTable from '@/components/TurmaTable.vue'
 interface Turma {
   id: number
   nome: string
-  periodo: string
-  status: 'ativo' | 'inativo'
+  periodo: 'matutino' | 'vespertino' | ''
+  status: 'ativo' | 'inativo' | ''
 }
 
 // Lista de turmas (mock)
 const turmas = ref<Turma[]>([
-  { id: 1, nome: '1º Ano A', periodo: '2024.1', status: 'ativo' },
-  { id: 2, nome: '2º Ano B', periodo: '2023.2', status: 'inativo' },
-  { id: 3, nome: '3º Ano C', periodo: '2024.1', status: 'ativo' },
+  { id: 1, nome: '1º Ano A', periodo: 'matutino', status: 'ativo' },
+  { id: 2, nome: '2º Ano B', periodo: 'vespertino', status: 'inativo' },
+  { id: 3, nome: '3º Ano C', periodo: 'vespertino', status: 'ativo' },
 ])
 
 const filtro = ref('')
@@ -81,19 +81,20 @@ function salvarTurma(turma: Turma) {
     const index = turmas.value.findIndex(t => t.id === turma.id)
     if (index !== -1) {
       turmas.value[index] = { ...turma }
+
+      Swal.fire({
+        position: 'top-end',
+        icon: 'success',
+        title: 'Turma atualizada com sucesso!',
+        showConfirmButton: false,
+        timer: 1500
+      })
     }
-
-    Swal.fire({
-      icon: 'success',
-      title: 'Turma atualizada com sucesso!',
-      showConfirmButton: false,
-      timer: 1500
-    })
-
   } else {
     turmas.value.push({ ...turma })
 
     Swal.fire({
+      position: 'top-end',
       icon: 'success',
       title: 'Turma cadastrada com sucesso!',
       showConfirmButton: false,
@@ -109,25 +110,34 @@ function confirmarExclusao(id: number) {
   const turma = turmas.value.find(t => t.id === id)
   if (!turma) return
 
-  Swal.fire({
+  const swalWithBootstrapButtons = Swal.mixin({
+    customClass: {
+      confirmButton: 'btn btn-success',
+      cancelButton: 'btn btn-danger'
+    },
+    buttonsStyling: false
+  })
+
+  swalWithBootstrapButtons.fire({
     title: `Deseja excluir a turma "${turma.nome}"?`,
     text: 'Essa ação não poderá ser desfeita!',
     icon: 'warning',
     showCancelButton: true,
     confirmButtonText: 'Sim, excluir',
-    cancelButtonText: 'Cancelar'
+    cancelButtonText: 'Cancelar',
+    reverseButtons: true
   }).then(result => {
     if (result.isConfirmed) {
       turmas.value = turmas.value.filter(t => t.id !== id)
       cancelarFormulario()
 
-      Swal.fire({
-        icon: 'success',
-        title: 'Turma excluída com sucesso!',
-        showConfirmButton: false,
-        timer: 1500
+      swalWithBootstrapButtons.fire({
+        title: 'Excluído!',
+        text: 'A turma foi removida com sucesso.',
+        icon: 'success'
       })
     }
   })
 }
+
 </script>

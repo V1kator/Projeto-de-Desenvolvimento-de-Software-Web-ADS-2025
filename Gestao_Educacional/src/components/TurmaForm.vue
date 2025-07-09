@@ -11,10 +11,14 @@
 
     <!-- Período -->
     <div class="mb-3">
-      <label for="periodo" class="form-label">Período</label>
-      <input v-model="form.periodo" type="text" class="form-control" id="periodo" placeholder="Ex: 2024.1" />
-      <div v-if="erros.periodo" class="text-danger small mt-1">{{ erros.periodo }}</div>
-    </div>
+  <label for="periodo" class="form-label">Período</label>
+  <select v-model="form.periodo" id="periodo" class="form-select">
+    <option value="">Selecione</option>
+    <option value="matutino">Matutino</option>
+    <option value="vespertino">Vespertino</option>
+  </select>
+  <div v-if="erros.periodo" class="text-danger small mt-1">{{ erros.periodo }}</div>
+</div>
 
     <!-- Status -->
     <div class="mb-4">
@@ -49,6 +53,7 @@
 
 <script setup lang="ts">
 import { ref, watch } from 'vue'
+import Swal from 'sweetalert2'
 
 interface Turma {
   id: number
@@ -89,6 +94,15 @@ function validarFormulario() {
 function validarESalvar() {
   if (validarFormulario()) {
     emit('salvar', { ...form.value })
+  } else {
+    Swal.fire({
+      position: 'top-end',
+      icon: 'error',
+      title: 'Preencha todos os campos obrigatórios!',
+      showConfirmButton: false,
+      timer: 1500
+    })
   }
 }
+
 </script>
