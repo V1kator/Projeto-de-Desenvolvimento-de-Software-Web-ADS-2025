@@ -1,6 +1,7 @@
+<!-- src/components/ChamadaTable.vue -->
 <template>
   <div class="shadow-sm bg-white rounded-3 p-4">
-    <h4 class="mb-4">Chamada - {{ dataAtual }}</h4>
+    <h5 class="mb-4">Lista de Alunos</h5>
     <div class="table-responsive">
       <table class="table align-middle mb-0">
         <thead class="table-light">
@@ -18,7 +19,8 @@
               <input
                 class="form-check-input"
                 type="radio"
-                :name="'presenca_' + aluno.id"
+                :name="'status_' + aluno.id"
+                value="presente"
                 :checked="aluno.status === 'presente'"
                 @change="$emit('marcar-presenca', aluno.id)"
               />
@@ -27,7 +29,8 @@
               <input
                 class="form-check-input"
                 type="radio"
-                :name="'presenca_' + aluno.id"
+                :name="'status_' + aluno.id"
+                value="falta"
                 :checked="aluno.status === 'falta'"
                 @change="$emit('marcar-falta', aluno.id)"
               />
@@ -36,10 +39,10 @@
               <input
                 type="text"
                 class="form-control form-control-sm"
-                :value="aluno.justificativa"
                 :disabled="aluno.status !== 'falta'"
+                :value="aluno.justificativa"
                 @input="$emit('editar-justificativa', aluno.id, $event.target.value)"
-                placeholder="Digite se necessário"
+                placeholder="Digite a justificativa"
               />
             </td>
           </tr>
@@ -50,7 +53,7 @@
 </template>
 
 <script setup lang="ts">
-const props = defineProps<{
+defineProps<{
   alunos: {
     id: number
     nome: string
@@ -58,6 +61,4 @@ const props = defineProps<{
     justificativa?: string
   }[]
 }>()
-
-const dataAtual = new Date().toLocaleDateString()
 </script>

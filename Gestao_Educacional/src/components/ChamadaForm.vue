@@ -1,25 +1,26 @@
 <template>
-  <div class="p-4">
-    <label for="date" class="form-label">Selecione a data da chamada:</label>
-    <input
-      type="date"
-      id="date"
-      class="form-control"
-      v-model="selectedDate"
-      @change="emitDate"
-    />
-  </div>
+  <input
+    type="date"
+    class="form-control"
+    :max="dataHoje"
+    v-model="dataInterna"
+    @change="emitirData"
+  />
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
-const selectedDate = ref(new Date().toISOString().split('T')[0])
+import { ref, watch } from 'vue'
 
-const emit = defineEmits<{
-  (e: 'update:date', value: string): void
-}>()
+const props = defineProps<{ value: string }>()
+const emit = defineEmits<{ (e: 'update:date', value: string): void }>()
 
-function emitDate() {
-  emit('update:date', selectedDate.value)
+const dataHoje = new Date().toISOString().split('T')[0]
+const dataInterna = ref(props.value)
+
+watch(() => props.value, val => (dataInterna.value = val))
+
+function emitirData() {
+  emit('update:date', dataInterna.value)
 }
 </script>
+
