@@ -35,7 +35,7 @@ defineProps<{
   materias: {
     id: number
     nome: string
-    status: 'ativo' | 'inativo'
+    status: 'ativo' | 'desligado'
   }[]
 }>()
 </script>

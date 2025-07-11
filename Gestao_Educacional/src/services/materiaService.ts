@@ -3,7 +3,7 @@ import api from './api'
 export interface Materia {
   id: number
   nome: string
-  status: 'ativo' | 'inativo'
+  status: 'ativo' | 'desligado' // Corrigido para refletir os valores do banco
 }
 
 export default {
@@ -32,15 +32,5 @@ export default {
   async listarAtivas(): Promise<Materia[]> {
     const resposta = await api.get('/Materia/ativas')
     return resposta.data
-  },
-
-  async listar1(): Promise<Materia[]> {
-    try {
-      const resposta = await api.get('/Materia')
-      return resposta.data
-    } catch (error) {
-      console.error('Erro na requisição:', error)
-      throw error
-    }
-  },
+  }
 }

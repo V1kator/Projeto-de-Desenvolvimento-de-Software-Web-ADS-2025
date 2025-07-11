@@ -15,7 +15,7 @@
       <select v-model="form.status" id="status" class="form-select">
         <option value="">Selecione</option>
         <option value="ativo">Ativo</option>
-        <option value="inativo">Inativo</option>
+        <option value="desligado">Desligado</option>
       </select>
       <div v-if="erros.status" class="text-danger small mt-1">{{ erros.status }}</div>
     </div>
@@ -46,7 +46,7 @@ import { ref, watch } from 'vue'
 interface Materia {
   id: number
   nome: string
-  status: 'ativo' | 'inativo' | ''
+  status: 'ativo' | 'desligado' | ''
 }
 
 const props = defineProps<{
