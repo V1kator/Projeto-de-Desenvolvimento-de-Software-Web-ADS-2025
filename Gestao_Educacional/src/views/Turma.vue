@@ -24,120 +24,103 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import Swal from 'sweetalert2'
 import TurmaForm from '@/components/TurmaForm.vue'
 import TurmaTable from '@/components/TurmaTable.vue'
+import turmaService, { Turma } from '@/services/turmaService'
 
-interface Turma {
-  id: number
-  nome: string
-  periodo: 'matutino' | 'vespertino' | ''
-  status: 'ativo' | 'inativo' | ''
-}
-
-// Lista de turmas (mock)
-const turmas = ref<Turma[]>([
-  { id: 1, nome: '1º Ano A', periodo: 'matutino', status: 'ativo' },
-  { id: 2, nome: '2º Ano B', periodo: 'vespertino', status: 'inativo' },
-  { id: 3, nome: '3º Ano C', periodo: 'vespertino', status: 'ativo' },
-])
-
+const turmas = ref<Turma[]>([])
 const filtro = ref('')
 const formulario = ref<Turma>({ id: 0, nome: '', periodo: '', status: 'ativo' })
 const modoFormulario = ref({ ativo: false, edicao: false })
 
-// Filtro da lista
+// Carrega todas as turmas da API
+async function carregarTurmas() {
+  try {
+    turmas.value = await turmaService.listar()
+  } catch {
+    Swal.fire('Erro', 'Erro ao carregar turmas da API.', 'error')
+  }
+}
+
+onMounted(carregarTurmas)
+
+// Computed para filtro de busca
 const turmasFiltradas = computed(() =>
   turmas.value.filter(t =>
     t.nome.toLowerCase().includes(filtro.value.toLowerCase())
   )
 )
 
-// Nova turma
+// Abre formulário para nova turma
 function abrirFormularioNovaTurma() {
-  formulario.value = { id: Date.now(), nome: '', periodo: '', status: 'ativo' }
+  formulario.value = { id: 0, nome: '', periodo: '', status: 'ativo' }
   modoFormulario.value = { ativo: true, edicao: false }
 }
 
-// Editar turma existente
-function abrirFormularioEdicao(id: number) {
-  const turma = turmas.value.find(t => t.id === id)
-  if (turma) {
+// Abre formulário com dados da turma para edição
+async function abrirFormularioEdicao(id: number) {
+  try {
+    const turma = await turmaService.buscarPorId(id)
     formulario.value = { ...turma }
     modoFormulario.value = { ativo: true, edicao: true }
+  } catch {
+    Swal.fire('Erro', 'Turma não encontrada.', 'error')
   }
 }
 
-// Cancelar edição/criação
+// Cancela o formulário e reseta estado
 function cancelarFormulario() {
   modoFormulario.value = { ativo: false, edicao: false }
   formulario.value = { id: 0, nome: '', periodo: '', status: 'ativo' }
 }
 
-// Salvar nova ou editar existente
-function salvarTurma(turma: Turma) {
-  if (modoFormulario.value.edicao) {
-    const index = turmas.value.findIndex(t => t.id === turma.id)
-    if (index !== -1) {
-      turmas.value[index] = { ...turma }
-
-      Swal.fire({
-        position: 'top-end',
-        icon: 'success',
-        title: 'Turma atualizada com sucesso!',
-        showConfirmButton: false,
-        timer: 1500
+// Salva turma (nova ou edição)
+async function salvarTurma(turma: Turma) {
+  try {
+    if (modoFormulario.value.edicao) {
+      await turmaService.atualizar(turma)
+      Swal.fire('Atualizado!', 'Turma atualizada com sucesso.', 'success')
+    } else {
+      await turmaService.criar({
+        nome: turma.nome,
+        periodo: turma.periodo,
+        status: turma.status
       })
+      Swal.fire('Cadastrado!', 'Turma criada com sucesso.', 'success')
     }
-  } else {
-    turmas.value.push({ ...turma })
 
-    Swal.fire({
-      position: 'top-end',
-      icon: 'success',
-      title: 'Turma cadastrada com sucesso!',
-      showConfirmButton: false,
-      timer: 1500
-    })
+    await carregarTurmas()
+    cancelarFormulario()
+  } catch {
+    Swal.fire('Erro', 'Não foi possível salvar a turma.', 'error')
   }
-
-  cancelarFormulario()
 }
 
-// Excluir turma com
-function confirmarExclusao(id: number) {
+// Confirma e executa exclusão da turma
+async function confirmarExclusao(id: number) {
   const turma = turmas.value.find(t => t.id === id)
   if (!turma) return
 
-  const swalWithBootstrapButtons = Swal.mixin({
-    customClass: {
-      confirmButton: 'btn btn-success',
-      cancelButton: 'btn btn-danger'
-    },
-    buttonsStyling: false
-  })
-
-  swalWithBootstrapButtons.fire({
-    title: `Deseja excluir a turma "${turma.nome}"?`,
+  const confirm = await Swal.fire({
+    title: `Excluir "${turma.nome}"?`,
     text: 'Essa ação não poderá ser desfeita!',
     icon: 'warning',
     showCancelButton: true,
     confirmButtonText: 'Sim, excluir',
-    cancelButtonText: 'Cancelar',
-    reverseButtons: true
-  }).then(result => {
-    if (result.isConfirmed) {
-      turmas.value = turmas.value.filter(t => t.id !== id)
-      cancelarFormulario()
-
-      swalWithBootstrapButtons.fire({
-        title: 'Excluído!',
-        text: 'A turma foi removida com sucesso.',
-        icon: 'success'
-      })
-    }
+    cancelButtonText: 'Cancelar'
   })
-}
 
+  if (confirm.isConfirmed) {
+    try {
+      await turmaService.excluir(id)
+      await carregarTurmas()
+      cancelarFormulario()
+      Swal.fire('Excluído!', 'Turma excluída com sucesso!', 'success')
+    } catch {
+      Swal.fire('Erro', 'Erro ao excluir a turma.', 'error')
+    }
+  }
+}
 </script>

@@ -11,14 +11,14 @@
 
     <!-- Período -->
     <div class="mb-3">
-  <label for="periodo" class="form-label">Período</label>
-  <select v-model="form.periodo" id="periodo" class="form-select">
-    <option value="">Selecione</option>
-    <option value="matutino">Matutino</option>
-    <option value="vespertino">Vespertino</option>
-  </select>
-  <div v-if="erros.periodo" class="text-danger small mt-1">{{ erros.periodo }}</div>
-</div>
+      <label for="periodo" class="form-label">Período</label>
+      <select v-model="form.periodo" id="periodo" class="form-select">
+        <option value="">Selecione</option>
+        <option value="matutino">Matutino</option>
+        <option value="vespertino">Vespertino</option>
+      </select>
+      <div v-if="erros.periodo" class="text-danger small mt-1">{{ erros.periodo }}</div>
+    </div>
 
     <!-- Status -->
     <div class="mb-4">
@@ -26,18 +26,14 @@
       <select v-model="form.status" id="status" class="form-select">
         <option value="">Selecione</option>
         <option value="ativo">Ativo</option>
-        <option value="inativo">Inativo</option>
+        <option value="desligado">Desligado</option> <!-- corrigido -->
       </select>
       <div v-if="erros.status" class="text-danger small mt-1">{{ erros.status }}</div>
     </div>
 
     <!-- Ações -->
     <div class="d-flex justify-content-between">
-      <button
-        v-if="edicao"
-        class="btn btn-outline-danger"
-        @click="$emit('excluir', form.id)"
-      >
+      <button v-if="edicao" class="btn btn-outline-danger" @click="$emit('excluir', form.id)">
         <i class="fa fa-trash me-2"></i>Excluir
       </button>
 

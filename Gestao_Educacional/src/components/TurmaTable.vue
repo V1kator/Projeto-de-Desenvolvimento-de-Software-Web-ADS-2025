@@ -38,7 +38,7 @@ defineProps<{
     id: number
     nome: string
     periodo: string
-    status: 'ativo' | 'inativo'
+    status: 'ativo' | 'desligado'
   }[]
 }>()
 </script>
