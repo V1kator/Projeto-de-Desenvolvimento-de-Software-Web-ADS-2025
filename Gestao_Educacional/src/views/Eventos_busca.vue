@@ -1,6 +1,5 @@
 <template>
   <div class="content p-4">
-    <!-- Pesquisa e botão -->
     <div class="d-flex justify-content-between align-items-center mb-3">
       <input v-model="filtro" class="form-control w-50" type="text" placeholder="Pesquisar evento..." />
       <button class="btn btn-primary" @click="abrirFormularioNovo">
@@ -8,7 +7,6 @@
       </button>
     </div>
 
-    <!-- Formulário de evento -->
     <EventoForm
       v-if="modoFormulario.ativo"
       :modelo="formulario"
@@ -19,7 +17,6 @@
       @excluir="excluirEvento"
     />
 
-    <!-- Tabela -->
     <EventoTable :eventos="eventosFiltrados" @editar="abrirFormularioEdicao" />
   </div>
 </template>
@@ -58,22 +55,10 @@ interface Aluno {
 const alunosDisponiveis = ref<Aluno[]>([
   { id: 1, nome: 'José', turma: 'A', periodo: 'Matutino' },
   { id: 2, nome: 'Ana', turma: 'B', periodo: 'Vespertino' },
-  { id: 3, nome: 'Carlos', turma: 'A', periodo: 'Noturno' }
+  { id: 3, nome: 'Carlos', turma: 'A', periodo: 'Matutino' }
 ])
 
-const eventos = ref<Evento[]>([
-  {
-    id: 1,
-    nome: 'Parque',
-    descricao: 'Passeio no parque',
-    valor: 500,
-    status: 'encerrado',
-    inicio: '2010-10-10',
-    fim: '2010-10-10',
-    participantes: []
-  }
-])
-
+const eventos = ref<Evento[]>([])
 const filtro = ref('')
 const formulario = ref<Evento>({
   id: 0,
@@ -124,25 +109,11 @@ function salvarEvento(evento: Evento) {
   if (modoFormulario.value.edicao) {
     const i = eventos.value.findIndex(e => e.id === evento.id)
     if (i !== -1) eventos.value[i] = { ...evento }
-
-    Swal.fire({
-      icon: 'success',
-      title: 'Evento atualizado com sucesso!',
-      showConfirmButton: false,
-      timer: 1500
-    })
-
+    Swal.fire({ icon: 'success', title: 'Evento atualizado com sucesso!', timer: 1500, showConfirmButton: false })
   } else {
     eventos.value.push({ ...evento })
-
-    Swal.fire({
-      icon: 'success',
-      title: 'Evento cadastrado com sucesso!',
-      showConfirmButton: false,
-      timer: 1500
-    })
+    Swal.fire({ icon: 'success', title: 'Evento cadastrado com sucesso!', timer: 1500, showConfirmButton: false })
   }
-
   cancelarFormulario()
 }
 
@@ -161,13 +132,7 @@ function excluirEvento(id: number) {
     if (result.isConfirmed) {
       eventos.value = eventos.value.filter(e => e.id !== id)
       cancelarFormulario()
-
-      Swal.fire({
-        icon: 'success',
-        title: 'Evento excluído com sucesso!',
-        showConfirmButton: false,
-        timer: 1500
-      })
+      Swal.fire({ icon: 'success', title: 'Evento excluído com sucesso!', timer: 1500, showConfirmButton: false })
     }
   })
 }

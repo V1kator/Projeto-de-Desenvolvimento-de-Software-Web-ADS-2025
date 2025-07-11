@@ -12,6 +12,7 @@
     <AlunoForm
       v-if="modoFormulario.ativo && !modoFormulario.edicao"
       :modelo="formulario"
+      :turmas-disponiveis="turmas"
       @salvar="salvarAluno"
       @cancelar="cancelarFormulario"
     />
@@ -26,11 +27,14 @@
 
       <HistoricoSonhos
         :sonhos="formulario.sonhos"
+        :funcionarios="funcionariosAtivos"
         @atualizar-sonhos="atualizarSonhos"
       />
 
       <TransferenciaTurma
         :transferencias="formulario.transferencias"
+        :turmas="turmas"
+        :funcionarios="funcionariosAtivos"
         @adicionar-transferencia="adicionarTransferencia"
         @trocar-turma="trocarTurma"
       />
@@ -47,7 +51,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import AlunoForm from '@/components/aluno/AlunoForm.vue'
 import AlunoTable from '@/components/aluno/AlunoTable.vue'
 import DadosAluno from '@/components/aluno/DadosAluno.vue'
@@ -81,10 +85,34 @@ interface Aluno {
   transferencias: Transferencia[]
 }
 
+interface Funcionario {
+  id: number
+  nome: string
+  status: 'ativo' | 'desligado'
+}
+
 const alunos = ref<Aluno[]>([])
 const filtro = ref('')
 const modoFormulario = ref({ ativo: false, edicao: false })
 const formulario = ref<Aluno>(alunoVazio())
+
+// Simulação de dados vindos da API
+const turmas = ref<string[]>(['1º Ano A', '2º Ano B', '3º Ano C'])
+const funcionariosSistema = ref<Funcionario[]>([
+  { id: 1, nome: 'Maria Silva', status: 'ativo' },
+  { id: 2, nome: 'João Oliveira', status: 'ativo' },
+  { id: 3, nome: 'Ana Paula', status: 'desligado' }
+])
+
+const funcionariosAtivos = computed(() =>
+  funcionariosSistema.value
+    .filter(f => f.status === 'ativo')
+    .map(f => f.nome)
+)
+
+onMounted(() => {
+  // Aqui futuramente você pode substituir pelo carregamento da API
+})
 
 function alunoVazio(): Aluno {
   return {
@@ -135,7 +163,6 @@ function salvarAluno(aluno: Aluno) {
 }
 
 function atualizarAluno(alunoAtualizado: Aluno) {
-  // Mantém a turma atual (só pode ser alterada via transferência)
   const turmaAtual = formulario.value.turma
   formulario.value = { ...alunoAtualizado }
   formulario.value.turma = turmaAtual
@@ -149,13 +176,13 @@ function atualizarSonhos(lista: RegistroSonho[]) {
 }
 
 function adicionarTransferencia(transferencia: Transferencia) {
-  // Cria um novo array para garantir reatividade
   formulario.value.transferencias = [
     ...formulario.value.transferencias,
     transferencia
   ]
   formulario.value.turma = transferencia.destino
 }
+
 function trocarTurma(novaTurma: string) {
   formulario.value.turma = novaTurma
 }

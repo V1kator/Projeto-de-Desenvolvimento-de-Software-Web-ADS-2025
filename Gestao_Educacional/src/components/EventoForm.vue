@@ -2,7 +2,7 @@
   <div class="bg-light rounded p-4 mb-4">
     <h5 class="mb-3">{{ edicao ? 'Editar Evento' : 'Novo Evento' }}</h5>
 
-    <!-- Campos principais -->
+    <!-- Dados principais -->
     <div class="row mb-3">
       <div class="col-md-6">
         <label class="form-label">Nome do Evento</label>
@@ -42,85 +42,50 @@
       </div>
     </div>
 
-    <!-- Participantes -->
-    <div class="mt-4 border-top pt-3">
-      <h6>Participantes</h6>
-      <div class="row align-items-end">
-        <div class="col-md-3">
-          <label class="form-label">Aluno</label>
-          <select v-model="participanteSelecionado.idAluno" class="form-select">
-            <option disabled value="">Selecione</option>
-            <option v-for="aluno in alunos" :key="aluno.id" :value="aluno.id">
-              {{ aluno.nome }}
-            </option>
+    <!-- Participantes com seleção por turma/período -->
+    <div class="border-top pt-3 mt-4">
+      <h6>Adicionar Participantes</h6>
+
+      <div class="row">
+        <div class="col-md-4">
+          <label class="form-label">Turma</label>
+          <select v-model="turmaSelecionada" class="form-select">
+            <option value="">Selecione</option>
+            <option v-for="t in turmasUnicas" :key="t">{{ t }}</option>
           </select>
         </div>
 
-        <div class="col-md-2">
-          <label class="form-label">Participou</label>
-          <div class="d-flex gap-2">
-            <div class="form-check">
-              <input
-                v-model="participanteSelecionado.participou"
-                type="radio"
-                class="form-check-input"
-                :value="true"
-                id="sim"
-              />
-              <label class="form-check-label" for="sim">Sim</label>
-            </div>
-            <div class="form-check">
-              <input
-                v-model="participanteSelecionado.participou"
-                type="radio"
-                class="form-check-input"
-                :value="false"
-                id="nao"
-              />
-              <label class="form-check-label" for="nao">Não</label>
-            </div>
-          </div>
-        </div>
-
-        <div class="col-md-2">
-          <label class="form-label">Turma</label>
-          <input v-model="participanteSelecionado.turma" class="form-control" disabled />
-        </div>
-
-        <div class="col-md-2">
+        <div class="col-md-4">
           <label class="form-label">Período</label>
-          <input v-model="participanteSelecionado.periodo" class="form-control" disabled />
-        </div>
-
-        <div class="col-md-3 text-end">
-          <button class="btn btn-warning" @click="adicionarParticipante">
-            <i class="fa fa-plus me-1"></i>Adicionar
-          </button>
+          <select v-model="periodoSelecionado" class="form-select">
+            <option value="">Selecione</option>
+            <option v-for="p in periodosUnicos" :key="p">{{ p }}</option>
+          </select>
         </div>
       </div>
 
+      <div v-if="alunosFiltrados.length" class="mt-3">
+        <p class="fw-semibold">Selecione os alunos participantes:</p>
+        <div v-for="aluno in alunosFiltrados" :key="aluno.id" class="form-check">
+          <input class="form-check-input" type="checkbox" :id="`aluno-${aluno.id}`" :value="aluno.id" v-model="selecionados" />
+          <label class="form-check-label" :for="`aluno-${aluno.id}`">{{ aluno.nome }}</label>
+        </div>
+        <button class="btn btn-warning mt-2" @click="adicionarParticipantesSelecionados">
+          <i class="fa fa-plus me-1"></i>Adicionar Participantes
+        </button>
+      </div>
+
       <ul class="mt-3 list-group">
-        <li
-          v-for="(p, index) in form.participantes"
-          :key="index"
-          class="list-group-item d-flex justify-content-between"
-        >
-          {{ alunoNome(p.idAluno) }} —
-          {{ p.participou ? 'Participou' : 'Não participou' }} — Turma {{ p.turma }} ({{ p.periodo }})
-          <button class="btn btn-sm btn-outline-danger" @click="form.participantes.splice(index, 1)">
-            Remover
-          </button>
+        <li v-for="(p, index) in form.participantes" :key="index" class="list-group-item d-flex justify-content-between">
+          {{ alunoNome(p.idAluno) }} — {{ p.participou ? 'Participou' : 'Não participou' }} — Turma {{ p.turma }} ({{ p.periodo }})
+          <button class="btn btn-sm btn-outline-danger" @click="form.participantes.splice(index, 1)">Remover</button>
         </li>
       </ul>
     </div>
 
     <!-- Ações -->
     <div class="d-flex justify-content-between mt-4">
-      <button
-        v-if="edicao"
-        class="btn btn-outline-danger"
-        @click="$emit('excluir', form.id)"
-      >
+      <button v-if="edicao" class="btn btn-outline-danger" @click="$emit('excluir', form.id)">
         <i class="fa fa-trash me-2"></i>Excluir
       </button>
 
@@ -135,7 +100,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import { ref, computed, watch } from 'vue'
 
 interface Aluno {
   id: number
@@ -162,63 +127,64 @@ interface Evento {
   participantes: Participante[]
 }
 
-const props = defineProps<{
-  modelo: Evento
-  edicao: boolean
-  alunos: Aluno[]
-}>()
-
-const emit = defineEmits<{
-  (e: 'salvar', evento: Evento): void
-  (e: 'cancelar'): void
-  (e: 'excluir', id: number): void
-}>()
-
+const props = defineProps<{ modelo: Evento; edicao: boolean; alunos: Aluno[] }>()
+const emit = defineEmits(['salvar', 'cancelar', 'excluir'])
 const form = ref<Evento>({ ...props.modelo })
 const erros = ref<Record<string, string>>({})
-const participanteSelecionado = ref<Participante>({
-  idAluno: 0,
-  participou: true,
-  turma: '',
-  periodo: ''
-})
+const turmaSelecionada = ref('')
+const periodoSelecionado = ref('')
+const selecionados = ref<number[]>([])
 
-watch(() => participanteSelecionado.value.idAluno, (id) => {
-  const aluno = props.alunos.find(a => a.id === id)
-  if (aluno) {
-    participanteSelecionado.value.turma = aluno.turma
-    participanteSelecionado.value.periodo = aluno.periodo
-  }
-})
+const alunosFiltrados = computed(() =>
+  props.alunos.filter(a => a.turma === turmaSelecionada.value && a.periodo === periodoSelecionado.value)
+)
 
-function adicionarParticipante() {
-  if (participanteSelecionado.value.idAluno && !form.value.participantes.some(p => p.idAluno === participanteSelecionado.value.idAluno)) {
-    form.value.participantes.push({ ...participanteSelecionado.value })
-    participanteSelecionado.value = {
-      idAluno: 0,
-      participou: true,
-      turma: '',
-      periodo: ''
-    }
-  }
-}
+const turmasUnicas = computed(() => [...new Set(props.alunos.map(a => a.turma))])
+const periodosUnicos = computed(() => [...new Set(props.alunos.filter(a => a.turma === turmaSelecionada.value).map(a => a.periodo))])
 
 function alunoNome(id: number) {
   return props.alunos.find(a => a.id === id)?.nome || 'Desconhecido'
 }
 
+function adicionarParticipantesSelecionados() {
+  selecionados.value.forEach(id => {
+    if (!form.value.participantes.some(p => p.idAluno === id)) {
+      const aluno = props.alunos.find(a => a.id === id)
+      if (aluno) {
+        form.value.participantes.push({
+          idAluno: id,
+          participou: true,
+          turma: aluno.turma,
+          periodo: aluno.periodo
+        })
+      }
+    }
+  })
+  selecionados.value = []
+}
+
 function validarFormulario() {
   erros.value = {}
-
   if (!form.value.nome.trim()) erros.value.nome = 'Nome obrigatório'
   if (form.value.valor == null || form.value.valor < 0) erros.value.valor = 'Valor obrigatório'
   if (!form.value.status) erros.value.status = 'Status obrigatório'
   if (!form.value.inicio) erros.value.inicio = 'Data de início obrigatória'
-
   return Object.keys(erros.value).length === 0
 }
 
+function formatarDataParaISO(data: string) {
+  const d = new Date(data)
+  return d.toISOString().split('T')[0]
+}
+
 function validarESalvar() {
-  if (validarFormulario()) emit('salvar', { ...form.value })
+  if (validarFormulario()) {
+    const eventoFinal = {
+      ...form.value,
+      inicio: formatarDataParaISO(form.value.inicio),
+      fim: form.value.fim ? formatarDataParaISO(form.value.fim) : undefined
+    }
+    emit('salvar', eventoFinal)
+  }
 }
 </script>

@@ -35,12 +35,12 @@ export default {
   },
 
   async listar1(): Promise<Materia[]> {
-  try {
-    const resposta = await api.get('/Materia')
-    return resposta.data
-  } catch (error) {
-    console.error('Erro na requisição:', error)
-    throw error
-  }
-},
+    try {
+      const resposta = await api.get('/Materia')
+      return resposta.data
+    } catch (error) {
+      console.error('Erro na requisição:', error)
+      throw error
+    }
+  },
 }

@@ -12,16 +12,20 @@
     <!-- CPF -->
     <div class="mb-3">
       <label for="cpf" class="form-label">CPF</label>
-      <input
-        v-model="form.cpf"
-        type="text"
-        class="form-control"
-        id="cpf"
-        placeholder="000.000.000-00"
-        maxlength="14"
-        @blur="validarCPF"
-      />
+      <input v-model="form.cpf" type="text" class="form-control" id="cpf" maxlength="14" @blur="validarCPF" />
       <div v-if="erros.cpf" class="text-danger small mt-1">{{ erros.cpf }}</div>
+    </div>
+
+    <!-- Senha -->
+    <div class="mb-3">
+      <label for="senha" class="form-label">Senha</label>
+      <div class="input-group">
+        <input :type="mostrarSenha ? 'text' : 'password'" v-model="form.senha" class="form-control" id="senha" />
+        <button type="button" class="btn btn-outline-secondary" @click="mostrarSenha = !mostrarSenha">
+          <i :class="mostrarSenha ? 'fa fa-eye-slash' : 'fa fa-eye'"></i>
+        </button>
+      </div>
+      <div v-if="erros.senha" class="text-danger small mt-1">{{ erros.senha }}</div>
     </div>
 
     <!-- Cargo -->
@@ -49,36 +53,31 @@
     <!-- Matéria -->
     <div class="mb-3">
       <label for="materia" class="form-label">Matéria</label>
-      <select v-model="form.materia" class="form-select" id="materia">
-        <option value="">Selecione a matéria</option>
-        <option v-for="m in materias" :key="m" :value="m">{{ m }}</option>
+      <select v-model.number="form.materiaId" class="form-select" id="materia" :disabled="form.cargo === 'administrador'">
+        <option :value="null">Selecione a matéria</option>
+        <option v-for="m in materias" :key="m.id" :value="m.id">{{ m.nome }}</option>
       </select>
-      <div v-if="erros.materia" class="text-danger small mt-1">{{ erros.materia }}</div>
+      <div v-if="erros.materiaId" class="text-danger small mt-1">{{ erros.materiaId }}</div>
     </div>
 
-    <!-- Admissão -->
+    <!-- Data de Admissão -->
     <div class="mb-3">
       <label class="form-label">Data de Admissão</label>
-      <input v-model="form.admissao" type="date" class="form-control" />
-      <div v-if="erros.admissao" class="text-danger small mt-1">{{ erros.admissao }}</div>
+      <input v-model="form.dataAdmissao" type="date" class="form-control" />
+      <div v-if="erros.dataAdmissao" class="text-danger small mt-1">{{ erros.dataAdmissao }}</div>
     </div>
 
-    <!-- Desligamento -->
+    <!-- Data de Desligamento -->
     <div class="mb-4" v-if="form.status === 'desligado'">
       <label class="form-label">Data de Desligamento</label>
-      <input v-model="form.desligamento" type="date" class="form-control" />
+      <input v-model="form.dataDesligamento" type="date" class="form-control" />
     </div>
 
     <!-- Ações -->
     <div class="d-flex justify-content-between">
-      <button
-        v-if="edicao"
-        class="btn btn-outline-danger"
-        @click="$emit('excluir', form.id)"
-      >
+      <button v-if="edicao" class="btn btn-outline-danger" @click="$emit('excluir', form.id)">
         <i class="fa fa-trash me-2"></i>Excluir
       </button>
-
       <div class="ms-auto">
         <button class="btn btn-secondary me-2" @click="$emit('cancelar')">Cancelar</button>
         <button class="btn btn-primary" @click="validarESalvar">
@@ -92,30 +91,29 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue'
 
+interface Materia {
+  id: number
+  nome: string
+  status: string
+}
+
 interface Funcionario {
   id: number
   nome: string
   cpf: string
+  senha: string
   cargo: 'professor' | 'administrador' | ''
   status: 'ativo' | 'desligado' | ''
-  materia: string
-  admissao: string
-  desligamento?: string
+  materiaId: number | null
+  dataAdmissao: string
+  dataDesligamento: string | null
 }
 
-const props = defineProps<{
-  modelo: Funcionario
-  edicao: boolean
-  materias: string[]
-}>()
-
-const emit = defineEmits<{
-  (e: 'salvar', func: Funcionario): void
-  (e: 'cancelar'): void
-  (e: 'excluir', id: number): void
-}>()
+const props = defineProps<{ modelo: Funcionario; edicao: boolean; materias: Materia[] }>()
+const emit = defineEmits<{ (e: 'salvar', func: Funcionario): void; (e: 'cancelar'): void; (e: 'excluir', id: number): void }>()
 
 const form = ref<Funcionario>({ ...props.modelo })
+const mostrarSenha = ref(false)
 const erros = ref<Record<string, string>>({})
 
 watch(() => props.modelo, (novo) => {
@@ -125,24 +123,19 @@ watch(() => props.modelo, (novo) => {
 
 function validarCPF() {
   const cpf = form.value.cpf.replace(/\D/g, '')
-  if (cpf.length !== 11) {
-    erros.value.cpf = 'CPF inválido'
-  } else {
-    delete erros.value.cpf
-  }
+  if (cpf.length !== 11) erros.value.cpf = 'CPF inválido'
+  else delete erros.value.cpf
 }
 
 function validarFormulario() {
   erros.value = {}
-
   if (!form.value.nome.trim()) erros.value.nome = 'Nome obrigatório'
-  if (!form.value.cpf.trim() || form.value.cpf.replace(/\D/g, '').length !== 11)
-    erros.value.cpf = 'CPF inválido'
+  if (!form.value.cpf.trim() || form.value.cpf.replace(/\D/g, '').length !== 11) erros.value.cpf = 'CPF inválido'
+  if (!form.value.senha || form.value.senha.length < 4) erros.value.senha = 'Senha obrigatória (mín. 4 caracteres)'
   if (!form.value.cargo) erros.value.cargo = 'Cargo obrigatório'
   if (!form.value.status) erros.value.status = 'Status obrigatório'
-  if (!form.value.materia) erros.value.materia = 'Matéria obrigatória'
-  if (!form.value.admissao) erros.value.admissao = 'Data de admissão obrigatória'
-
+  if (form.value.cargo === 'professor' && !form.value.materiaId) erros.value.materiaId = 'Matéria obrigatória'
+  if (!form.value.dataAdmissao) erros.value.dataAdmissao = 'Data obrigatória'
   return Object.keys(erros.value).length === 0
 }
 

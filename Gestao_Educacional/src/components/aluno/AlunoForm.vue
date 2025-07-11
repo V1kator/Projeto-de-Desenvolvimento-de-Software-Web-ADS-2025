@@ -16,7 +16,6 @@
         <option value="">Selecione</option>
         <option value="Matutino">Matutino</option>
         <option value="Vespertino">Vespertino</option>
-        <option value="Noturno">Noturno</option>
       </select>
       <div v-if="erros.periodo" class="text-danger small mt-1">{{ erros.periodo }}</div>
     </div>
@@ -35,7 +34,10 @@
     <!-- Turma -->
     <div class="mb-3">
       <label for="turma" class="form-label">Turma</label>
-      <input v-model="aluno.turma" type="text" class="form-control" id="turma" />
+      <select v-model="aluno.turma" class="form-select" id="turma">
+        <option value="">Selecione</option>
+        <option v-for="turma in turmasDisponiveis" :key="turma" :value="turma">{{ turma }}</option>
+      </select>
       <div v-if="erros.turma" class="text-danger small mt-1">{{ erros.turma }}</div>
     </div>
 
@@ -75,6 +77,7 @@ interface Aluno {
 const props = defineProps<{
   modelo: Aluno
   edicao: boolean
+  turmasDisponiveis: string[]
 }>()
 
 const emit = defineEmits<{
@@ -85,7 +88,6 @@ const emit = defineEmits<{
 const aluno = ref<Aluno>({ ...props.modelo })
 const erros = ref<Record<string, string>>({})
 
-// Se o modelo mudar (ex: ao editar), atualiza os dados no form
 watch(() => props.modelo, (novo) => {
   aluno.value = { ...novo }
   erros.value = {}

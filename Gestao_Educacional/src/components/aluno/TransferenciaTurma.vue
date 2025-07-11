@@ -28,11 +28,17 @@
     <div class="row g-2 align-items-end">
       <div class="col-md-3">
         <label>Turma Origem</label>
-        <input v-model="nova.origem" type="text" class="form-control" />
+        <select v-model="nova.origem" class="form-select">
+          <option value="">Selecione</option>
+          <option v-for="t in turmas" :key="t" :value="t">{{ t }}</option>
+        </select>
       </div>
       <div class="col-md-3">
         <label>Turma Destino</label>
-        <input v-model="nova.destino" type="text" class="form-control" />
+        <select v-model="nova.destino" class="form-select">
+          <option value="">Selecione</option>
+          <option v-for="t in turmas" :key="t" :value="t">{{ t }}</option>
+        </select>
       </div>
       <div class="col-md-3">
         <label>Data da Transferência</label>
@@ -40,7 +46,10 @@
       </div>
       <div class="col-md-2">
         <label>Funcionário</label>
-        <input v-model="nova.funcionario" type="text" class="form-control" />
+        <select v-model="nova.funcionario" class="form-select">
+          <option value="">Selecione</option>
+          <option v-for="f in funcionarios" :key="f" :value="f">{{ f }}</option>
+        </select>
       </div>
       <div class="col-md-1 text-end">
         <button class="btn btn-warning w-100" @click="adicionar">Adicionar</button>
@@ -61,8 +70,12 @@ interface Transferencia {
 
 const props = withDefaults(defineProps<{
   transferencias?: Transferencia[]
+  turmas: string[]
+  funcionarios: string[]
 }>(), {
-  transferencias: () => []
+  transferencias: () => [],
+  turmas: () => [],
+  funcionarios: () => []
 })
 
 const emit = defineEmits<{

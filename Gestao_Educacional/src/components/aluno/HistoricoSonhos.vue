@@ -49,7 +49,10 @@
       </div>
       <div class="col-md-3">
         <label>Funcionário</label>
-        <input v-model="novo.funcionario" type="text" class="form-control" />
+        <select v-model="novo.funcionario" class="form-select">
+          <option value="">Selecione</option>
+          <option v-for="f in funcionarios" :key="f" :value="f">{{ f }}</option>
+        </select>
       </div>
       <div class="col-md-1">
         <label>Tipo</label>
@@ -78,6 +81,7 @@ interface RegistroSonho {
 
 const props = defineProps<{
   sonhos: RegistroSonho[]
+  funcionarios: string[]
 }>()
 
 const emit = defineEmits<{

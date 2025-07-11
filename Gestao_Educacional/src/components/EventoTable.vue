@@ -20,10 +20,7 @@
           <td>
             <span
               class="badge rounded-pill"
-              :class="evento.status === 'ativo'
-                ? 'bg-success-subtle text-success'
-                : 'bg-secondary-subtle text-secondary'"
-            >
+              :class="evento.status === 'ativo' ? 'bg-success-subtle text-success' : 'bg-secondary-subtle text-secondary'">
               {{ evento.status }}
             </span>
           </td>
@@ -41,17 +38,9 @@
 </template>
 
 <script setup lang="ts">
-const props = defineProps<{
-  eventos: {
-    id: number
-    nome: string
-    descricao: string
-    valor: number
-    status: 'ativo' | 'encerrado'
-    inicio: string
-    fim?: string
-  }[]
-}>()
+const props = defineProps({
+  eventos: Array
+})
 
 function formatarData(data: string): string {
   const [ano, mes, dia] = data.split('-')

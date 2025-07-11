@@ -1,6 +1,5 @@
 <template>
   <div class="content p-4">
-    <!-- Filtro + botão -->
     <div class="d-flex justify-content-between align-items-center mb-3">
       <input v-model="filtro" class="form-control w-50" type="text" placeholder="Pesquisar funcionário..." />
       <button class="btn btn-primary" @click="abrirFormularioNovo">
@@ -8,7 +7,6 @@
       </button>
     </div>
 
-    <!-- Formulário -->
     <FuncionarioForm
       v-if="modoFormulario.ativo"
       :modelo="formulario"
@@ -19,150 +17,123 @@
       @excluir="excluirFuncionario"
     />
 
-    <!-- Tabela -->
     <FuncionarioTable :funcionarios="funcionariosFiltrados" @editar="abrirFormularioEdicao" />
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import Swal from 'sweetalert2'
 import FuncionarioForm from '@/components/FuncionarioForm.vue'
 import FuncionarioTable from '@/components/FuncionarioTable.vue'
+import FuncionarioService, { Funcionario, FuncionarioCreateDTO } from '@/services/FuncionarioService'
+import MateriaService, { Materia } from '@/services/materiaService'
 
-interface Funcionario {
-  id: number
-  nome: string
-  cpf: string
-  cargo: 'professor' | 'administrador'
-  status: 'ativo' | 'desligado'
-  materia: string
-  admissao: string
-  desligamento?: string
-}
-
-const materiasDisponiveis = ref([
-  'Matemática',
-  'Português',
-  'Física',
-  'História'
-])
-
-const funcionarios = ref<Funcionario[]>([
-  {
-    id: 1,
-    nome: 'Carlos Souza',
-    cpf: '12345678900',
-    cargo: 'professor',
-    status: 'ativo',
-    materia: 'Matemática',
-    admissao: '2022-02-15'
-  },
-  {
-    id: 2,
-    nome: 'Ana Lima',
-    cpf: '98765432100',
-    cargo: 'administrador',
-    status: 'desligado',
-    materia: 'Português',
-    admissao: '2021-08-10',
-    desligamento: '2023-01-05'
-  }
-])
-
+const materiasDisponiveis = ref<Materia[]>([])
+const funcionarios = ref<Funcionario[]>([])
 const filtro = ref('')
-const formulario = ref<Funcionario>({
-  id: 0,
+const formulario = ref<FuncionarioCreateDTO | (Funcionario & { id: number })>({
   nome: '',
   cpf: '',
+  senha: '',
   cargo: 'professor',
   status: 'ativo',
-  materia: '',
-  admissao: '',
-  desligamento: ''
+  materiaId: null,
+  dataAdmissao: '',
+  dataDesligamento: ''
 })
 
 const modoFormulario = ref({ ativo: false, edicao: false })
 
 const funcionariosFiltrados = computed(() =>
-  funcionarios.value.filter(f =>
-    f.nome.toLowerCase().includes(filtro.value.toLowerCase())
-  )
+  funcionarios.value.filter(f => f.nome.toLowerCase().includes(filtro.value.toLowerCase()))
 )
+
+onMounted(() => {
+  carregarFuncionarios()
+  carregarMaterias()
+})
+
+async function carregarFuncionarios() {
+  funcionarios.value = await FuncionarioService.listarTodos()
+}
+
+async function carregarMaterias() {
+  try {
+    materiasDisponiveis.value = await MateriaService.listarAtivas()
+  } catch (error) {
+    console.error('Erro ao carregar matérias:', error)
+    Swal.fire({ icon: 'error', title: 'Erro ao carregar matérias' })
+  }
+}
 
 function abrirFormularioNovo() {
   formulario.value = {
-    id: Date.now(),
     nome: '',
     cpf: '',
+    senha: '',
     cargo: 'professor',
     status: 'ativo',
-    materia: '',
-    admissao: '',
-    desligamento: ''
+    materiaId: null,
+    dataAdmissao: '',
+    dataDesligamento: ''
   }
   modoFormulario.value = { ativo: true, edicao: false }
 }
 
-function abrirFormularioEdicao(id: number) {
-  const func = funcionarios.value.find(f => f.id === id)
-  if (func) {
-    formulario.value = { ...func }
-    modoFormulario.value = { ativo: true, edicao: true }
+function formatarData(data: string | null | undefined): string {
+  if (!data) return ''
+  return data.split('T')[0] // Extrai apenas a parte 'yyyy-MM-dd'
+}
+
+async function abrirFormularioEdicao(id: number) {
+  const func = await FuncionarioService.buscarPorId(id)
+  formulario.value = {
+    ...func,
+    dataAdmissao: formatarData(func.dataAdmissao),
+    dataDesligamento: formatarData(func.dataDesligamento)
   }
+  modoFormulario.value = { ativo: true, edicao: true }
 }
 
 function cancelarFormulario() {
   modoFormulario.value = { ativo: false, edicao: false }
 }
 
-function salvarFuncionario(func: Funcionario) {
-  if (modoFormulario.value.edicao) {
-    const index = funcionarios.value.findIndex(f => f.id === func.id)
-    if (index !== -1) funcionarios.value[index] = { ...func }
-
-    Swal.fire({
-      icon: 'success',
-      title: 'Funcionário atualizado com sucesso!',
-      showConfirmButton: false,
-      timer: 1500
-    })
-  } else {
-    funcionarios.value.push({ ...func })
-
-    Swal.fire({
-      icon: 'success',
-      title: 'Funcionário cadastrado com sucesso!',
-      showConfirmButton: false,
-      timer: 1500
-    })
+async function salvarFuncionario(func: FuncionarioCreateDTO | (Funcionario & { id: number })) {
+  try {
+    if (modoFormulario.value.edicao && 'id' in func) {
+      await FuncionarioService.atualizar(func.id, func)
+      Swal.fire({ icon: 'success', title: 'Funcionário atualizado com sucesso!', showConfirmButton: false, timer: 1500 })
+    } else {
+      await FuncionarioService.criar(func)
+      Swal.fire({ icon: 'success', title: 'Funcionário cadastrado com sucesso!', showConfirmButton: false, timer: 1500 })
+    }
+    cancelarFormulario()
+    await carregarFuncionarios()
+  } catch (e) {
+    Swal.fire({ icon: 'error', title: 'Erro ao salvar funcionário', text: (e as any).message })
   }
-  cancelarFormulario()
 }
 
-function excluirFuncionario(id: number) {
+async function excluirFuncionario(id: number) {
   const func = funcionarios.value.find(f => f.id === id)
   if (!func) return
 
-  Swal.fire({
+  const confirm = await Swal.fire({
     title: `Deseja excluir ${func.nome}?`,
     text: 'Essa ação não poderá ser desfeita!',
     icon: 'warning',
     showCancelButton: true,
     confirmButtonText: 'Sim, excluir',
     cancelButtonText: 'Cancelar'
-  }).then(result => {
-    if (result.isConfirmed) {
-      funcionarios.value = funcionarios.value.filter(f => f.id !== id)
-      cancelarFormulario()
-
-      Swal.fire({
-        icon: 'success',
-        title: 'Funcionário excluído com sucesso!',
-        showConfirmButton: false,
-        timer: 1500
-      })
-    }
   })
+
+  if (confirm.isConfirmed) {
+    await FuncionarioService.excluir(id)
+    await carregarFuncionarios()
+    cancelarFormulario()
+    Swal.fire({ icon: 'success', title: 'Funcionário excluído com sucesso!', showConfirmButton: false, timer: 1500 })
+  }
 }
 </script>
