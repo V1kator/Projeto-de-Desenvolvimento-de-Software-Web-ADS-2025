@@ -25,7 +25,7 @@
           <i :class="mostrarSenha ? 'fa fa-eye-slash' : 'fa fa-eye'"></i>
         </button>
       </div>
-      <div v-if="erros.senha" class="text-danger small mt-1">{{ erros.senha }}</div>
+      <div v-if="!edicao && erros.senha" class="text-danger small mt-1">{{ erros.senha }}</div>
     </div>
 
     <!-- Cargo -->
@@ -34,7 +34,7 @@
       <select v-model="form.cargo" class="form-select" id="cargo">
         <option value="">Selecione</option>
         <option value="professor">Professor</option>
-        <option value="administrador">Administrador</option>
+        <option value="administrativo">Administrador</option>
       </select>
       <div v-if="erros.cargo" class="text-danger small mt-1">{{ erros.cargo }}</div>
     </div>
@@ -98,11 +98,11 @@ interface Materia {
 }
 
 interface Funcionario {
-  id: number
+  id?: number
   nome: string
   cpf: string
-  senha: string
-  cargo: 'professor' | 'administrador' | ''
+  senha?: string
+  cargo: 'professor' | 'administrativo' | ''
   status: 'ativo' | 'desligado' | ''
   materiaId: number | null
   dataAdmissao: string
@@ -131,7 +131,7 @@ function validarFormulario() {
   erros.value = {}
   if (!form.value.nome.trim()) erros.value.nome = 'Nome obrigatório'
   if (!form.value.cpf.trim() || form.value.cpf.replace(/\D/g, '').length !== 11) erros.value.cpf = 'CPF inválido'
-  if (!form.value.senha || form.value.senha.length < 4) erros.value.senha = 'Senha obrigatória (mín. 4 caracteres)'
+  if (!props.edicao && (!form.value.senha || form.value.senha.length < 4)) erros.value.senha = 'Senha obrigatória (mín. 4 caracteres)'
   if (!form.value.cargo) erros.value.cargo = 'Cargo obrigatório'
   if (!form.value.status) erros.value.status = 'Status obrigatório'
   if (form.value.cargo === 'professor' && !form.value.materiaId) erros.value.materiaId = 'Matéria obrigatória'

@@ -40,7 +40,7 @@ const formulario = ref<FuncionarioCreateDTO | (Funcionario & { id: number })>({
   status: 'ativo',
   materiaId: null,
   dataAdmissao: '',
-  dataDesligamento: ''
+  dataDesligamento: null
 })
 
 const modoFormulario = ref({ ativo: false, edicao: false })
@@ -76,22 +76,25 @@ function abrirFormularioNovo() {
     status: 'ativo',
     materiaId: null,
     dataAdmissao: '',
-    dataDesligamento: ''
+    dataDesligamento: null
   }
   modoFormulario.value = { ativo: true, edicao: false }
 }
 
 function formatarData(data: string | null | undefined): string {
   if (!data) return ''
-  return data.split('T')[0] // Extrai apenas a parte 'yyyy-MM-dd'
+  return data.split('T')[0]
 }
 
 async function abrirFormularioEdicao(id: number) {
   const func = await FuncionarioService.buscarPorId(id)
   formulario.value = {
     ...func,
+    cargo: func.cargo.toLowerCase(),
+    status: func.status.toLowerCase(),
     dataAdmissao: formatarData(func.dataAdmissao),
-    dataDesligamento: formatarData(func.dataDesligamento)
+    dataDesligamento: formatarData(func.dataDesligamento),
+    senha: ''
   }
   modoFormulario.value = { ativo: true, edicao: true }
 }

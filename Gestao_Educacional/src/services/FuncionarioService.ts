@@ -4,51 +4,78 @@ export interface Funcionario {
   id: number
   nome: string
   cpf: string
-  cargo: 'professor' | 'administrador'
-  status: 'ativo' | 'desligado'
+  cargo: string
+  status: string
   materiaId: number | null
   materiaNome?: string
   dataAdmissao: string
-  dataDesligamento?: string | null
+  dataDesligamento: string | null
+  senha?: string
 }
 
-// Criação: sem ID nem nome da matéria
-export type FuncionarioCreateDTO = Omit<Funcionario, 'id' | 'materiaNome'>
-
-// Atualização: com ID, mas sem nome da matéria
-export type FuncionarioUpdateDTO = Omit<Funcionario, 'materiaNome'>
+export interface FuncionarioCreateDTO {
+  nome: string
+  cpf: string
+  senha: string
+  cargo: string
+  status: string
+  materiaId: number | null
+  dataAdmissao: string
+  dataDesligamento: string | null
+}
 
 export default {
   async listarTodos(): Promise<Funcionario[]> {
-    const res = await api.get('/Funcionario')
-    return res.data
+    const response = await api.get('/Funcionario')
+    return response.data
   },
 
   async buscarPorId(id: number): Promise<Funcionario> {
-    const res = await api.get(`/Funcionario/${id}`)
-    return res.data
+    const response = await api.get(`/Funcionario/${id}`)
+    return response.data
   },
 
-  async criar(func: FuncionarioCreateDTO): Promise<Funcionario> {
-    const res = await api.post('/Funcionario', func)
-    return res.data
+  async criar(dados: FuncionarioCreateDTO): Promise<void> {
+    const payload = {
+      ...dados,
+      dataAdmissao: new Date(dados.dataAdmissao).toISOString(),
+      dataDesligamento: dados.dataDesligamento
+        ? new Date(dados.dataDesligamento).toISOString()
+        : null
+    }
+
+    await api.post('/Funcionario', payload)
   },
 
-  async atualizar(id: number, func: FuncionarioUpdateDTO): Promise<void> {
-    await api.put(`/Funcionario/${id}`, func)
+  async atualizar(id: number, dados: Funcionario): Promise<void> {
+    const payload = {
+      nome: dados.nome,
+      cargo: dados.cargo,
+      status: dados.status,
+      materiaId: dados.materiaId,
+      senha: dados.senha,
+      dataAdmissao: dados.dataAdmissao
+        ? new Date(dados.dataAdmissao).toISOString()
+        : null,
+      dataDesligamento: dados.dataDesligamento
+        ? new Date(dados.dataDesligamento).toISOString()
+        : null
+    }
+
+    await api.put(`/Funcionario/${id}`, payload)
   },
 
   async excluir(id: number): Promise<void> {
     await api.delete(`/Funcionario/${id}`)
   },
 
-  async listarProfessores(): Promise<Funcionario[]> {
-    const res = await api.get('/Funcionario/professores')
-    return res.data
+  async verificarCpfExistente(cpf: string): Promise<boolean> {
+    const response = await api.get(`/Funcionario/verificar-cpf/${cpf}`)
+    return response.data
   },
 
-  async verificarCPF(cpf: string): Promise<boolean> {
-    const res = await api.get(`/Funcionario/verificar-cpf/${cpf}`)
-    return res.data
-  },
+  async listarProfessoresAtivos(): Promise<Funcionario[]> {
+    const response = await api.get('/Funcionario/professores')
+    return response.data
+  }
 }
