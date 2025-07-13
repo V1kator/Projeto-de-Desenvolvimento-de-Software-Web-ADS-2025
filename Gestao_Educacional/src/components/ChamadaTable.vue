@@ -1,4 +1,3 @@
-<!-- src/components/ChamadaTable.vue -->
 <template>
   <div class="shadow-sm bg-white rounded-3 p-4">
     <h5 class="mb-4">Lista de Alunos</h5>
