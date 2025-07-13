@@ -1,113 +1,73 @@
 <template>
-  <div class="bg-light rounded p-4 mb-4">
-    <h5 class="mb-3">{{ edicao ? 'Editar Aluno' : 'Novo Aluno' }}</h5>
+  <div class="bg-light rounded p-4">
+    <h5 class="mb-3">Novo Aluno</h5>
 
-    <!-- Nome -->
     <div class="mb-3">
-      <label for="nome" class="form-label">Nome</label>
-      <input v-model="aluno.nome" type="text" class="form-control" id="nome" />
-      <div v-if="erros.nome" class="text-danger small mt-1">{{ erros.nome }}</div>
+      <label class="form-label">Nome</label>
+      <input v-model="modelo.nome" type="text" class="form-control" />
     </div>
 
-    <!-- Período -->
     <div class="mb-3">
-      <label for="periodo" class="form-label">Período</label>
-      <select v-model="aluno.periodo" class="form-select" id="periodo">
+      <label class="form-label">Período</label>
+      <select v-model="modelo.periodo" class="form-select">
         <option value="">Selecione</option>
         <option value="Matutino">Matutino</option>
         <option value="Vespertino">Vespertino</option>
       </select>
-      <div v-if="erros.periodo" class="text-danger small mt-1">{{ erros.periodo }}</div>
     </div>
 
-    <!-- Status -->
     <div class="mb-3">
-      <label for="status" class="form-label">Status da Matrícula</label>
-      <select v-model="aluno.status" class="form-select" id="status">
+      <label class="form-label">Status</label>
+      <select v-model="modelo.status" class="form-select">
         <option value="">Selecione</option>
         <option value="ativo">Ativo</option>
         <option value="inativo">Inativo</option>
+        <option value="desligado">Desligado</option>
       </select>
-      <div v-if="erros.status" class="text-danger small mt-1">{{ erros.status }}</div>
     </div>
 
-    <!-- Turma -->
     <div class="mb-3">
-      <label for="turma" class="form-label">Turma</label>
-      <select v-model="aluno.turma" class="form-select" id="turma">
+      <label class="form-label">Turma</label>
+      <select v-model="modelo.turma" class="form-select">
         <option value="">Selecione</option>
-        <option v-for="turma in turmasDisponiveis" :key="turma" :value="turma">{{ turma }}</option>
+        <option v-for="turma in turmasDisponiveis" :key="turma" :value="turma">
+          {{ turma }}
+        </option>
       </select>
-      <div v-if="erros.turma" class="text-danger small mt-1">{{ erros.turma }}</div>
     </div>
 
-    <!-- Nascimento -->
-    <div class="mb-4">
-      <label for="nascimento" class="form-label">Data de Nascimento</label>
-      <input v-model="aluno.nascimento" type="date" class="form-control" id="nascimento" />
-      <div v-if="erros.nascimento" class="text-danger small mt-1">{{ erros.nascimento }}</div>
+    <div class="mb-3">
+      <label class="form-label">Data de Nascimento</label>
+      <input v-model="modelo.nascimento" type="date" class="form-control" />
     </div>
 
-    <!-- Ações -->
     <div class="d-flex justify-content-end">
       <button class="btn btn-secondary me-2" @click="$emit('cancelar')">Cancelar</button>
-      <button class="btn btn-primary" @click="validarESalvar">
-        <i class="fa fa-save me-1"></i>Salvar
-      </button>
+      <button class="btn btn-success" @click="$emit('salvar', modelo)">Salvar</button>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from 'vue'
-
 interface Aluno {
   id: number
   nome: string
   periodo: string
-  status: 'ativo' | 'inativo' | ''
+  status: 'ativo' | 'inativo' | 'desligado'
   turma: string
   nascimento: string
   saldoSonhos: number
   sonhos: any[]
-  matriculas: any[]
   transferencias: any[]
 }
 
-const props = defineProps<{
+defineProps<{
   modelo: Aluno
-  edicao: boolean
   turmasDisponiveis: string[]
 }>()
 
-const emit = defineEmits<{
+defineEmits<{
   (e: 'salvar', aluno: Aluno): void
   (e: 'cancelar'): void
 }>()
-
-const aluno = ref<Aluno>({ ...props.modelo })
-const erros = ref<Record<string, string>>({})
-
-watch(() => props.modelo, (novo) => {
-  aluno.value = { ...novo }
-  erros.value = {}
-})
-
-function validarFormulario(): boolean {
-  erros.value = {}
-
-  if (!aluno.value.nome.trim()) erros.value.nome = 'Nome é obrigatório'
-  if (!aluno.value.periodo) erros.value.periodo = 'Período é obrigatório'
-  if (!aluno.value.status) erros.value.status = 'Status é obrigatório'
-  if (!aluno.value.turma.trim()) erros.value.turma = 'Turma é obrigatória'
-  if (!aluno.value.nascimento) erros.value.nascimento = 'Data de nascimento é obrigatória'
-
-  return Object.keys(erros.value).length === 0
-}
-
-function validarESalvar() {
-  if (validarFormulario()) {
-    emit('salvar', { ...aluno.value })
-  }
-}
 </script>

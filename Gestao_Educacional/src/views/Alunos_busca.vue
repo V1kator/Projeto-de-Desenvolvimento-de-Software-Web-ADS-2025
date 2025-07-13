@@ -12,36 +12,33 @@
     <AlunoForm
       v-if="modoFormulario.ativo && !modoFormulario.edicao"
       :modelo="formulario"
-      :turmas-disponiveis="turmas"
-      @salvar="salvarAluno"
+      :turmas-disponiveis="turmas.map(t => t.nome)"
+      @salvar="criarAluno"
       @cancelar="cancelarFormulario"
     />
 
     <!-- Formulário de edição -->
     <div v-if="modoFormulario.ativo && modoFormulario.edicao">
-      <DadosAluno
-        :aluno="formulario"
-        :bloquear-turma="true"
-        @atualizar="atualizarAluno"
-      />
+      <DadosAluno :aluno="formulario" :bloquear-turma="true" @atualizar="atualizarAlunoLocal" />
 
       <HistoricoSonhos
         :sonhos="formulario.sonhos"
-        :funcionarios="funcionariosAtivos"
+        :funcionarios="nomesFuncionarios.map(f => f.nome)"
+        :aluno-id="formulario.id"
         @atualizar-sonhos="atualizarSonhos"
       />
 
       <TransferenciaTurma
         :transferencias="formulario.transferencias"
-        :turmas="turmas"
-        :funcionarios="funcionariosAtivos"
-        @adicionar-transferencia="adicionarTransferencia"
+        :turmas="turmas.map(t => t.nome)"
+        :funcionarios="nomesFuncionarios.map(f => f.nome)"
+        @adicionar-transferencia="salvarTransferencia"
         @trocar-turma="trocarTurma"
       />
 
       <div class="d-flex justify-content-end mt-3">
         <button class="btn btn-secondary me-2" @click="cancelarFormulario">Cancelar</button>
-        <button class="btn btn-success" @click="salvarAluno(formulario)">Salvar</button>
+        <button class="btn btn-success" @click="salvarEdicaoAluno">Salvar</button>
       </div>
     </div>
 
@@ -57,6 +54,12 @@ import AlunoTable from '@/components/aluno/AlunoTable.vue'
 import DadosAluno from '@/components/aluno/DadosAluno.vue'
 import HistoricoSonhos from '@/components/aluno/HistoricoSonhos.vue'
 import TransferenciaTurma from '@/components/aluno/TransferenciaTurma.vue'
+
+import TurmaService from '@/services/turmaService'
+import FuncionarioService from '@/services/FuncionarioService'
+import AlunoService from '@/services/AlunoService'
+import HistoricoSonhosService from '@/services/HistoricoSonhosService'
+import TransferenciaTurmaService from '@/services/TransferenciaTurmaService'
 
 interface RegistroSonho {
   data: string
@@ -77,7 +80,7 @@ interface Aluno {
   id: number
   nome: string
   periodo: string
-  status: 'ativo' | 'inativo'
+  status: 'ativo' | 'inativo' | 'desligado'
   turma: string
   nascimento: string
   saldoSonhos: number
@@ -85,34 +88,42 @@ interface Aluno {
   transferencias: Transferencia[]
 }
 
-interface Funcionario {
-  id: number
-  nome: string
-  status: 'ativo' | 'desligado'
-}
-
 const alunos = ref<Aluno[]>([])
 const filtro = ref('')
 const modoFormulario = ref({ ativo: false, edicao: false })
 const formulario = ref<Aluno>(alunoVazio())
+const turmas = ref<any[]>([])
+const nomesFuncionarios = ref<any[]>([])
 
-// Simulação de dados vindos da API
-const turmas = ref<string[]>(['1º Ano A', '2º Ano B', '3º Ano C'])
-const funcionariosSistema = ref<Funcionario[]>([
-  { id: 1, nome: 'Maria Silva', status: 'ativo' },
-  { id: 2, nome: 'João Oliveira', status: 'ativo' },
-  { id: 3, nome: 'Ana Paula', status: 'desligado' }
-])
+onMounted(carregarDadosIniciais)
 
-const funcionariosAtivos = computed(() =>
-  funcionariosSistema.value
-    .filter(f => f.status === 'ativo')
-    .map(f => f.nome)
+async function carregarDadosIniciais() {
+  try {
+    turmas.value = await TurmaService.listar()
+    nomesFuncionarios.value = await FuncionarioService.listarTodos()
+    const listaAlunos = await AlunoService.listarTodos()
+
+    alunos.value = listaAlunos.map((a: any) => ({
+      id: a.id,
+      nome: a.nome,
+      periodo: a.periodo,
+      status: (a.statusMatricula ?? 'ativo').toLowerCase(),
+      turma: a.turmaNome ?? '',
+      nascimento: a.dataNascimento.split('T')[0],
+      saldoSonhos: a.saldoSonhos,
+      sonhos: [],
+      transferencias: []
+    }))
+  } catch (error) {
+    console.error('Erro ao carregar dados iniciais:', error)
+  }
+}
+
+const alunosFiltrados = computed(() =>
+  alunos.value.filter(a =>
+    a.nome.toLowerCase().includes(filtro.value.toLowerCase())
+  )
 )
-
-onMounted(() => {
-  // Aqui futuramente você pode substituir pelo carregamento da API
-})
 
 function alunoVazio(): Aluno {
   return {
@@ -128,23 +139,40 @@ function alunoVazio(): Aluno {
   }
 }
 
-const alunosFiltrados = computed(() =>
-  alunos.value.filter((a) =>
-    a.nome.toLowerCase().includes(filtro.value.toLowerCase())
-  )
-)
-
 function abrirFormularioNovo() {
   formulario.value = alunoVazio()
   modoFormulario.value = { ativo: true, edicao: false }
 }
 
-function abrirFormularioEdicao(id: number) {
-  const aluno = alunos.value.find((a) => a.id === id)
-  if (aluno) {
-    formulario.value = JSON.parse(JSON.stringify(aluno))
-    modoFormulario.value = { ativo: true, edicao: true }
+async function abrirFormularioEdicao(id: number) {
+  const alunoDTO = await AlunoService.buscarPorId(id)
+  const sonhos = await HistoricoSonhosService.listarPorAluno(id)
+  const transferencias = await TransferenciaTurmaService.listarPorAluno(id)
+
+  formulario.value = {
+    id: alunoDTO.id,
+    nome: alunoDTO.nome,
+    periodo: alunoDTO.periodo,
+    status: (alunoDTO.statusMatricula ?? 'ativo').toLowerCase(),
+    turma: alunoDTO.turmaNome ?? '',
+    nascimento: alunoDTO.dataNascimento.split('T')[0],
+    saldoSonhos: alunoDTO.saldoSonhos,
+    sonhos: sonhos.map((s: any) => ({
+      data: s.data.split('T')[0],
+      motivo: s.motivo,
+      valor: s.valor,
+      funcionario: s.funcionarioNome ?? '',
+      tipo: s.tipo === 'Adição' ? 'ganho' : 'perda'
+    })),
+    transferencias: transferencias.map((t: any) => ({
+      origem: t.turmaOrigemNome ?? '',
+      destino: t.turmaDestinoNome ?? '',
+      data: t.dataTransferencia.split('T')[0],
+      funcionario: t.funcionarioNome ?? ''
+    }))
   }
+
+  modoFormulario.value = { ativo: true, edicao: true }
 }
 
 function cancelarFormulario() {
@@ -152,35 +180,73 @@ function cancelarFormulario() {
   formulario.value = alunoVazio()
 }
 
-function salvarAluno(aluno: Aluno) {
-  const index = alunos.value.findIndex((a) => a.id === aluno.id)
-  if (index !== -1) {
-    alunos.value[index] = { ...aluno }
-  } else {
-    alunos.value.push({ ...aluno })
+async function criarAluno(aluno: Aluno) {
+  try {
+    const turma = turmas.value.find(t => t.nome === aluno.turma)
+    await AlunoService.criar({
+      nome: aluno.nome,
+      dataNascimento: aluno.nascimento,
+      turmaId: turma?.id ?? null,
+      status: aluno.status, // ✅ corrigido
+      periodo: aluno.periodo
+    })
+    await carregarDadosIniciais()
+    cancelarFormulario()
+  } catch (error) {
+    console.error('Erro ao criar aluno:', error)
   }
-  cancelarFormulario()
 }
 
-function atualizarAluno(alunoAtualizado: Aluno) {
-  const turmaAtual = formulario.value.turma
+async function salvarEdicaoAluno() {
+  try {
+    const turma = turmas.value.find(t => t.nome === formulario.value.turma)
+    await AlunoService.atualizar(formulario.value.id, {
+      nome: formulario.value.nome,
+      dataNascimento: formulario.value.nascimento,
+      turmaId: turma?.id ?? null,
+      status: formulario.value.status, // ✅ corrigido
+      periodo: formulario.value.periodo
+    })
+    await carregarDadosIniciais()
+    cancelarFormulario()
+  } catch (error) {
+    console.error('Erro ao atualizar aluno:', error)
+  }
+}
+
+function atualizarAlunoLocal(alunoAtualizado: Aluno) {
   formulario.value = { ...alunoAtualizado }
-  formulario.value.turma = turmaAtual
 }
 
 function atualizarSonhos(lista: RegistroSonho[]) {
   formulario.value.sonhos = [...lista]
-  formulario.value.saldoSonhos = lista.reduce((acc, s) => {
-    return acc + (s.tipo === 'ganho' ? s.valor : -s.valor)
-  }, 0)
+  formulario.value.saldoSonhos = lista.reduce((acc, s) => acc + (s.tipo === 'ganho' ? s.valor : -s.valor), 0)
 }
 
-function adicionarTransferencia(transferencia: Transferencia) {
-  formulario.value.transferencias = [
-    ...formulario.value.transferencias,
-    transferencia
-  ]
-  formulario.value.turma = transferencia.destino
+async function salvarTransferencia(transferencia: Transferencia) {
+  try {
+    const turmaOrigem = turmas.value.find(t => t.nome === transferencia.origem)
+    const turmaDestino = turmas.value.find(t => t.nome === transferencia.destino)
+    const funcionario = nomesFuncionarios.value.find(f => f.nome === transferencia.funcionario)
+
+    if (!turmaOrigem || !turmaDestino || !funcionario) {
+      console.error('Dados incompletos para salvar transferência')
+      return
+    }
+
+    await TransferenciaTurmaService.transferir({
+      alunoId: formulario.value.id,
+      turmaOrigemId: turmaOrigem.id,
+      turmaDestinoId: turmaDestino.id,
+      funcionarioId: funcionario.id,
+      dataTransferencia: transferencia.data
+    })
+
+    formulario.value.transferencias.push(transferencia)
+    formulario.value.turma = transferencia.destino
+  } catch (error) {
+    console.error('Erro ao salvar transferência:', error)
+  }
 }
 
 function trocarTurma(novaTurma: string) {
