@@ -42,7 +42,7 @@
       </div>
     </div>
 
-    <!-- Participantes com seleção por turma/período -->
+    <!-- Participantes -->
     <div class="border-top pt-3 mt-4">
       <h6>Adicionar Participantes</h6>
 
@@ -100,7 +100,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue'
+import { ref, computed } from 'vue'
 
 interface Aluno {
   id: number
@@ -129,6 +129,7 @@ interface Evento {
 
 const props = defineProps<{ modelo: Evento; edicao: boolean; alunos: Aluno[] }>()
 const emit = defineEmits(['salvar', 'cancelar', 'excluir'])
+
 const form = ref<Evento>({ ...props.modelo })
 const erros = ref<Record<string, string>>({})
 const turmaSelecionada = ref('')
