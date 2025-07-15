@@ -64,7 +64,9 @@ const form = ref<Materia>({ ...props.modelo })
 const erros = ref<Record<string, string>>({})
 
 watch(() => props.modelo, (novo) => {
-  form.value = { ...novo }
+  form.value = { ...novo,
+     status: novo.status?.toLowerCase() as 'ativo' | 'desligado' | ''
+   }
   erros.value = {}
 })
 
