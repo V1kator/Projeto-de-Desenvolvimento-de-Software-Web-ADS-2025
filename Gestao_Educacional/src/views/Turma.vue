@@ -63,7 +63,10 @@ function abrirFormularioNovaTurma() {
 async function abrirFormularioEdicao(id: number) {
   try {
     const turma = await turmaService.buscarPorId(id)
-    formulario.value = { ...turma }
+    formulario.value = { ...turma,
+      periodo: turma.periodo.toLowerCase(),
+      status: turma.status.toLowerCase()
+     }
     modoFormulario.value = { ativo: true, edicao: true }
   } catch {
     Swal.fire('Erro', 'Turma não encontrada.', 'error')
