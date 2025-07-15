@@ -77,5 +77,9 @@ export default {
   async listarProfessoresAtivos(): Promise<Funcionario[]> {
     const response = await api.get('/Funcionario/professores')
     return response.data
-  }
+  },
+  async loginPorCpf(cpf: string): Promise<{ cpf: string; senha: string }> {
+  const response = await api.get(`/Funcionario/login/${cpf}`)
+  return response.data
+}
 }

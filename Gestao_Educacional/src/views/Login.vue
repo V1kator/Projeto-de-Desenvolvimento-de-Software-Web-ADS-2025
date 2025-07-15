@@ -7,28 +7,31 @@
             <a href="/" class="">
               <h3 class="text-primary"><i class="fa fa-hashtag me-2"></i>Sonho</h3>
             </a>
-            <h3>Sign In</h3>
+            <h3>Login</h3>
           </div>
+
           <div class="form-floating mb-3">
             <input
               v-model="email"
-              type="email"
+              type="text"
               class="form-control"
               id="floatingInput"
-              placeholder="Email address"
+              placeholder="CPF"
             />
-            <label for="floatingInput">Email address</label>
+            <label for="floatingInput">CPF</label>
           </div>
+
           <div class="form-floating mb-4">
             <input
               v-model="password"
               type="password"
               class="form-control"
               id="floatingPassword"
-              placeholder="Password"
+              placeholder="Senha"
             />
-            <label for="floatingPassword">Password</label>
+            <label for="floatingPassword">Senha</label>
           </div>
+
           <div class="d-flex align-items-center justify-content-between mb-4">
             <div class="form-check">
               <input
@@ -37,15 +40,17 @@
                 class="form-check-input"
                 id="exampleCheck1"
               />
-              <label class="form-check-label" for="exampleCheck1">Check me out</label>
+              <label class="form-check-label" for="exampleCheck1">Lembrar-me</label>
             </div>
-            <a href="">Forgot Password</a>
+            <a href="#">Esqueceu a senha?</a>
           </div>
+
           <button type="submit" class="btn btn-primary py-3 w-100 mb-4" @click="handleLogin">
-            Sign In
+            Entrar
           </button>
+
           <p class="text-center mb-0">
-            Don't have an Account? <router-link to="/singup">Sign Up</router-link>
+            Não tem uma conta? <router-link to="/signup">Cadastre-se</router-link>
           </p>
         </div>
       </div>
@@ -56,33 +61,35 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
+import FuncionarioService from '@/services/FuncionarioService'
 
-// Referências para os campos do formulário
 const email = ref('')
 const password = ref('')
 const rememberMe = ref(false)
 
-// Obter o router
 const router = useRouter()
 
-// Função para lidar com o login
-const handleLogin = () => {
-
-  if (email.value && password.value) {
-
-
-    // Armazenar informações de login se "Remember Me" estiver marcado
-    if (rememberMe.value) {
-      localStorage.setItem('userEmail', email.value)
-      // Não armazene senhas no localStorage em produção!
-      // Isso é apenas para demonstração
-    }
-
-    // Navegar para a página de chamada
-    router.push('/chamada')
-  } else {
-    // Exibir mensagem de erro se os campos não estiverem preenchidos
+const handleLogin = async () => {
+  if (!email.value || !password.value) {
     alert('Por favor, preencha todos os campos')
+    return
+  }
+
+  try {
+    const dados = await FuncionarioService.loginPorCpf(email.value)
+
+    if (dados.senha === password.value) {
+      if (rememberMe.value) {
+        localStorage.setItem('userCpf', email.value)
+      }
+
+      router.push('/chamada')
+    } else {
+      alert('Senha incorreta')
+    }
+  } catch (error) {
+    alert('CPF não encontrado ou erro ao fazer login')
+    console.error(error)
   }
 }
 </script>
