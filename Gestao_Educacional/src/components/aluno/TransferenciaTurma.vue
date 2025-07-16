@@ -42,14 +42,14 @@
         <label>Data da Transferência</label>
         <input v-model="nova.data" type="date" class="form-control" />
       </div>
-      <div class="col-md-2">
+      <div class="col-md-3">
         <label>Funcionário</label>
         <select v-model="nova.funcionario" class="form-select">
           <option value="">Selecione</option>
           <option v-for="f in funcionarios" :key="f" :value="f">{{ f }}</option>
         </select>
       </div>
-      <div class="col-md-1 text-end">
+      <div class="col-md-2 ms-auto text-end">
         <button class="btn btn-warning w-100" @click="adicionar">Adicionar</button>
       </div>
     </div>

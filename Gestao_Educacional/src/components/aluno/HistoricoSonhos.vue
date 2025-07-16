@@ -3,7 +3,7 @@
     <h5 class="mb-3">Histórico de Sonhos</h5>
 
     <!-- Tabela de registros -->
-    <table class="table table-bordered align-middle table-hover mb-3">
+    <table class="table table-bordered align-middle table-hover mb-3" >
       <thead class="table-primary">
         <tr>
           <th>Data</th>
@@ -33,7 +33,7 @@
 
     <!-- Formulário de adição -->
     <div class="row g-2 align-items-end">
-      <div class="col-md-2">
+      <div class="col-md-3">
         <label>Data</label>
         <input v-model="novo.data" type="date" class="form-control" />
       </div>
@@ -45,21 +45,21 @@
         <label>Valor</label>
         <input v-model.number="novo.valor" type="number" class="form-control" />
       </div>
-      <div class="col-md-3">
+      <div class="col-md-2">
         <label>Funcionário</label>
         <select v-model="novo.funcionario" class="form-select">
           <option value="">Selecione</option>
           <option v-for="f in funcionarios" :key="f" :value="f">{{ f }}</option>
         </select>
       </div>
-      <div class="col-md-1">
+      <div class="col-md-2">
         <label>Tipo</label>
-        <select v-model="novo.tipo" class="form-select">
+        <select v-model="novo.tipo" class="form-select" >
           <option value="ganho">Ganho</option>
           <option value="perda">Perda</option>
         </select>
       </div>
-      <div class="col-md-1 text-end">
+      <div class="col-md-2 ms-auto text-end">
         <button class="btn btn-warning w-100" @click="adicionar">Adicionar</button>
       </div>
     </div>
