@@ -25,33 +25,26 @@
           <i class="fa fa-users me-2"></i>Buscar Alunos
         </RouterLink>
 
-        <RouterLink to="/aluno-editar" class="nav-item nav-link">
-          <i class="fa fa-user-edit me-2"></i>Editar Aluno
+        <RouterLink to="/funcionarios-busca" class="nav-item nav-link">
+          <i class="fa fa-user-tie me-2"></i>Buscar Funcionários
         </RouterLink>
 
         <RouterLink to="/eventos-busca" class="nav-item nav-link">
           <i class="fa fa-calendar-alt me-2"></i>Buscar Eventos
         </RouterLink>
 
-        <RouterLink to="/evento-editar" class="nav-item nav-link">
-          <i class="fa fa-calendar-plus me-2"></i>Editar Evento
+        <RouterLink to="/turma" class="nav-item nav-link">
+          <i class="fa fa-user-plus me-2"></i>Turma
         </RouterLink>
 
-        <RouterLink to="/funcionarios-busca" class="nav-item nav-link">
-          <i class="fa fa-user-tie me-2"></i>Buscar Funcionários
-        </RouterLink>
-
-        <RouterLink to="/funcionario-editar" class="nav-item nav-link">
-          <i class="fa fa-user-cog me-2"></i>Editar Funcionário
+        <RouterLink to="/materia" class="nav-item nav-link">
+          <i class="fa fa-user-plus me-2"></i>Matéria
         </RouterLink>
 
         <RouterLink to="/login" class="nav-item nav-link">
           <i class="fa fa-sign-in-alt me-2"></i>Login
         </RouterLink>
 
-        <RouterLink to="/singup" class="nav-item nav-link">
-          <i class="fa fa-user-plus me-2"></i>Cadastro
-        </RouterLink>
       </div>
     </nav>
   </div>
