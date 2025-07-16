@@ -45,10 +45,6 @@
           <i class="fa fa-sign-in-alt me-2"></i>Login
         </RouterLink>
 
-        <RouterLink to="/singup" class="nav-item nav-link">
-          <i class="fa fa-user-plus me-2"></i>Cadastro
-        </RouterLink>
-
       </div>
     </nav>
   </div>
